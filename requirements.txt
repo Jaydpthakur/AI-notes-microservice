@@ -7,7 +7,7 @@ django-cors-headers
 django-environ
 celery
 python-dotenv
-
+django-redis
 djangorestframework-simplejwt
 graphene-django
 django-prometheus

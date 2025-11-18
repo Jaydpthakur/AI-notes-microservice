@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:13
+        image: postgres:17
         env:
           POSTGRES_USER: ai_notes_user
           POSTGRES_PASSWORD: ai_notes_pass
@@ -39,3 +39,4 @@ jobs:
       - name: Run tests
         run: |
           echo "No tests yet"
+

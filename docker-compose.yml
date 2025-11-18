@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1122
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  worker:
+    build: .
+    command: celery -A ai_notes worker -l info
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
+volumes:
+  pgdata:
+
+# added comment for commit history

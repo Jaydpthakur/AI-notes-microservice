@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: ai_notes_user
+          POSTGRES_PASSWORD: ai_notes_pass
+          POSTGRES_DB: ai_notes_db
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Run migrations
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_USER: ai_notes_user
+          POSTGRES_PASSWORD: ai_notes_pass
+          POSTGRES_DB: ai_notes_db
+        run: |
+          python manage.py migrate --noinput
+      - name: Run tests
+        run: |
+          echo "No tests yet"

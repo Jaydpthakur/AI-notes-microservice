@@ -1,0 +1,31 @@
+from django.urls import reverse
+from rest_framework.test import APITestCase
+from .models import Note
+from notes.models import Note as NoteModel
+from unittest.mock import patch
+
+class NotesAPITest(APITestCase):
+    def setUp(self):
+        self.note = NoteModel.objects.create(title="Test", text="Hello", original_language="en")
+
+    def test_list_notes(self):
+        url = reverse('note-list')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(len(resp.data) >= 1)
+
+    def test_translate_cached(self):
+        url = reverse('note-translate', args=[self.note.id])
+        with patch('notes.views.translate_text_via_api') as mock_translate:
+            mock_translate.return_value = "नमस्ते"
+            resp = self.client.post(url, {'target_language': 'hi'}, format='json')
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('original', resp.data)
+            self.assertIn('translated', resp.data)
+            self.assertEqual(resp.data['translated'], "नमस्ते")
+
+    def test_stats(self):
+        url = '/api/stats/'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('total_notes', resp.data)

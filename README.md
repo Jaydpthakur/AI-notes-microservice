@@ -1,7 +1,7 @@
 # AI Notes & Translation Microservice
 
 ## Project overview
-A minimal Django + DRF microservice that allows creating text notes, translating them via an external translation API (LibreTranslate by default), storing original and translated text, exposing CRUD and analytics endpoints, and demonstrating caching in Redis.
+A minimal Django + DRF microservice that allows creating text notes, translating them via an external translation API (MyMemory Translate API  by default), storing original and translated text, exposing CRUD and analytics endpoints, and demonstrating caching in Redis.
 
 This repository is a **starter implementation** to satisfy the assignment requirements. It includes:
 - Notes CRUD endpoints (create, read, update, delete)
@@ -16,7 +16,7 @@ This repository is a **starter implementation** to satisfy the assignment requir
 - PostgreSQL
 - Redis (cache + Celery broker)
 - Docker + Docker Compose
-- LibreTranslate (configurable translation backend) or fallback mock translator
+- MyMemory Translate API  (configurable translation backend) or fallback mock translator
 
 ## Why PostgreSQL?
 PostgreSQL is reliable, supports relational features easily, and is simple to run locally via Docker. It fits the assignment requirement (Postgres or DynamoDB). For a production-grade microservice, DynamoDB could be used for horizontal scalability, but Postgres is chosen here for simplicity and relational querying.
@@ -67,11 +67,7 @@ curl -X POST http://localhost:8000/api/notes/1/translate/ -H "Content-Type: appl
 - Endpoints: DRF ViewSet for `/api/notes/` and custom action `translate`.
 - Environment variables hold credentials and endpoints.
 
-## Known limitations / next steps
-- No authentication implemented (JWT suggested next step).
-- Unit tests and CI pipeline not included (can add GitHub Actions).
-- Monitoring stack (Prometheus/Grafana) not included but can be added.
-- Translation uses an external public LibreTranslate endpoint by default — for production, host your own or use a paid API.
+
 
 ## Files of interest
 - `notes/models.py` — Note model
@@ -96,3 +92,60 @@ A GitHub Actions workflow `/.github/workflows/ci.yml` is included to run lint/te
 1. Create a note via API.
 2. POST to `/api/notes/<id>/translate_async/` with `{"target_language":"hi"}`.
 3. Receive a `task_id`. Poll `/api/tasks/<task_id>/` for status. Once completed, translation stored on the note and cached.
+
+
+
+## Quick API examples (cURL / Postman)
+
+Create a note:
+```
+curl -X POST http://localhost:8000/api/notes/ \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Hello","text":"Hello world","original_language":"en"}'
+```
+
+Translate a note (sync):
+```
+curl -X POST http://localhost:8000/api/notes/<NOTE_ID>/translate/ \
+  -H "Content-Type: application/json" \
+  -d '{"target_language":"hi"}'
+```
+
+Legacy route (assignment exact path):
+```
+curl -X POST http://localhost:8000/translate/<NOTE_ID>/ \
+  -H "Content-Type: application/json" \
+  -d '{"target_language":"hi"}'
+```
+
+Get stats:
+```
+curl http://localhost:8000/api/stats/
+```
+
+## Docker Compose (local demo)
+
+Make a `.env` file from `.env.example`:
+```
+cp .env.example .env
+# optionally edit .env to set DJANGO_SECRET_KEY and other vars
+```
+
+Start services:
+```
+docker-compose up --build
+```
+
+This will start:
+- Django web server on port 8000
+- Postgres (db)
+- Redis
+- Celery worker
+- Flower (Celery monitoring) on port 5555
+
+Celery result backend uses Redis (see `.env.example`) so task statuses and results are available.
+
+## Notes about translation API key
+
+This project is configured to use the free public instance of **MyMemory Translate API ** by default (`TRANSLATE_API_URL=https://MyMemory Translate API .com/translate`). That public instance does not require an API key for small demo usage. If you prefer to use a paid/registered provider (DeepL, Google, etc.) or a self-hosted MyMemory Translate API  instance, set `TRANSLATE_API_URL` and `TRANSLATE_API_KEY` in your `.env` accordingly.
+

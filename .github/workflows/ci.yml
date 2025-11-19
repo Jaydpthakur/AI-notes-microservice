@@ -7,13 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:13
+        image: postgres:17
+        image: postgres:17
         env:
+          POSTGRES_USER: ai_notes_user
+          POSTGRES_PASSWORD: ai_notes_pass
           POSTGRES_DB: ai_notes_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: 1122
         ports:
-          - 5432:5432
+          - 5432:543
         options: >-
           --health-cmd pg_isready
           --health-interval 10s

@@ -1,12 +1,32 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
-from .models import Note
 from notes.models import Note as NoteModel
 from unittest.mock import patch
+from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class NotesAPITest(APITestCase):
+
     def setUp(self):
-        self.note = NoteModel.objects.create(title="Test", text="Hello", original_language="en")
+        # Create test user
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpass123"
+        )
+
+        # Get JWT token
+        refresh = RefreshToken.for_user(self.user)
+        access_token = str(refresh.access_token)
+
+        # Add token to client
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+
+        # Create test note
+        self.note = NoteModel.objects.create(
+            title="Test",
+            text="Hello",
+            original_language="en"
+        )
 
     def test_list_notes(self):
         url = reverse('note-list')
